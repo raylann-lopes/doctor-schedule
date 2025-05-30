@@ -80,7 +80,7 @@ export const usersToClinicsTable = pgTable("users_to_clinics", {
   clinicsTableId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
-  createAt: timestamp("created_at").defaultNow(),
+  createAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
