@@ -1,4 +1,6 @@
 import { Plus } from "lucide-react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import PageContainer, {
@@ -9,8 +11,18 @@ import PageContainer, {
   PageHeaderContent,
   PageTitle,
 } from "@/components/ui/page-container";
+import { auth } from "@/lib/auth";
 
-const DoctorPage = () => {
+const DoctorPage = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user) {
+    redirect("/authentication");
+  }
+  if (!session?.user.clinic) {
+    redirect("/clinic-form");
+  }
   return (
     <PageContainer>
       <PageHeader>
