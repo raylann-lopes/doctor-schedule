@@ -1,19 +1,11 @@
 "use client";
 
-import {
-  Calendar,
-  Home,
-  LogIn,
-  LogOut,
-  Settings,
-  Stethoscope,
-  UsersRound,
-} from "lucide-react";
+import { Calendar, Home, LogOut, Stethoscope, UsersRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +52,7 @@ const items = [
 
 const AppSidebar = () => {
   const router = useRouter();
+  const session = authClient.useSession();
 
   const handleSignOut = async () => {
     await authClient.signOut({
@@ -94,35 +87,22 @@ const AppSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Configurações</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/settings">
-                    <Settings />
-                    <span>Configurações</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/logout">
-                    <LogIn />
-                    <span>Sair</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button> Clinica</Button>
+              <SidebarMenuButton className="size-lg">
+                <Avatar>
+                  <AvatarFallback>F</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm">{session.data?.user.clinic.name}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {session.data?.user.email}
+                  </p>
+                </div>
+              </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={handleSignOut}>
