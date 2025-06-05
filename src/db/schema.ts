@@ -113,7 +113,7 @@ export const doctorsTable = pgTable("doctors", {
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  avatarImageUrl: text("avatar_image_url").notNull(),
+  avatarImageUrl: text("avatar_image_url"),
   specialty: text("specialty").notNull(),
   // 1 - Monday, 2 - Tuesday, ..., 7 - Sunday
   availableFromWeekday: integer("available_from_weekday").notNull(),
