@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { doctorsTable } from "@/db/schema";
 
 import { medicalSpecialties } from "../constants";
 
@@ -69,36 +70,46 @@ const formSchema = z
   );
 
 interface UpsertDoctorFormProps {
+  doctor?: typeof doctorsTable.$inferSelect;
   onSuccess?: () => void;
 }
 
-const UpsertDoctorForm = ({ onSuccess }: UpsertDoctorFormProps) => {
+const UpsertDoctorForm = ({ doctor, onSuccess }: UpsertDoctorFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      specialty: "",
-      appointment_price: 0,
-      availableFromWeekday: "0",
-      availableToWeekday: "0",
-      availableToTime: "",
-      availableFromTime: "",
+      name: doctor?.name || "",
+      specialty: doctor?.specialty || "",
+      appointment_price: doctor?.appointmentPriceInCents
+        ? doctor.appointmentPriceInCents / 100
+        : 0,
+      availableFromWeekday: doctor?.availableFromWeekday.toString() || "1",
+      availableToWeekday: doctor?.availableToWeekday.toString() || "5",
+      availableFromTime: doctor?.availableFromTime || "11:00:00",
+      availableToTime: doctor?.availableToTime || "21:00:00",
     },
   });
 
   const upsertDoctorAction = useAction(upsertDoctor, {
     onSuccess: () => {
-      toast.success("Médico atualizado com sucesso");
+      toast.success(
+        doctor?.id
+          ? "Médico atualizado com sucesso"
+          : "Médico criado com sucesso",
+      );
       onSuccess?.();
     },
     onError: () => {
-      toast.error("Erro ao atualizar médico");
+      toast.error(
+        doctor?.id ? "Erro ao atualizar médico" : "Erro ao criar médico",
+      );
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     upsertDoctorAction.execute({
       ...values,
+      id: doctor?.id,
       appointmentPriceInCents: values.appointment_price * 100,
       availableFromWeekday: parseInt(values.availableFromWeekday),
       availableToWeekday: parseInt(values.availableToWeekday),
@@ -108,9 +119,11 @@ const UpsertDoctorForm = ({ onSuccess }: UpsertDoctorFormProps) => {
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Adicionar Médico</DialogTitle>
+        <DialogTitle>{doctor ? doctor.name : "Adicionar Médico"}</DialogTitle>
         <DialogDescription>
-          Adicione um novo médico à sua clínica.
+          {doctor
+            ? "Atualize as informações desse médico"
+            : "Adicione um novo médico à sua clínica."}
         </DialogDescription>
       </DialogHeader>
       <Form {...form}>
@@ -378,7 +391,11 @@ const UpsertDoctorForm = ({ onSuccess }: UpsertDoctorFormProps) => {
 
           <DialogFooter>
             <Button type="submit" disabled={upsertDoctorAction.isExecuting}>
-              {upsertDoctorAction.isExecuting ? "Adicionando..." : "Adicionar"}
+              {upsertDoctorAction.isExecuting
+                ? "Salvando..."
+                : doctor
+                  ? "Salvar"
+                  : "Adicionar"}
             </Button>
           </DialogFooter>
         </form>
