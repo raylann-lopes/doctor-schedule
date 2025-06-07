@@ -28,8 +28,11 @@ export const PatientTableColumns: ColumnDef<Patient>[] = [
 
       if (!phone) return "-";
 
-      // Format: (XX) XXXXX-XXXX
       const formatted = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+
+      if (phone.replace(/\D/g, "").length !== 11) {
+        return <span className="text-red-500">Número inválido</span>;
+      }
 
       return formatted;
     },

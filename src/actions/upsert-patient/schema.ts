@@ -10,8 +10,8 @@ export const upsertPatientSchema = z.object({
   email: z.string().email({
     message: "E-mail inválido",
   }),
-  phoneNumber: z.string().trim().min(1, {
-    message: "Telefone é obrigatório",
+  phoneNumber: z.string().trim().min(11, {
+    message: "Telefone inválido",
   }),
   sex: z.enum(patientSexEnum.enumValues),
 });
