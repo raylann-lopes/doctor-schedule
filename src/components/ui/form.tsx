@@ -110,6 +110,7 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
 
   return (
     <Slot
+      className="w-full"
       data-slot="form-control"
       id={formItemId}
       aria-describedby={
