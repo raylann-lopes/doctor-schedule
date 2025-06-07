@@ -83,6 +83,7 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
             onSuccess={() => {
               setIsUpsertDoctorFormOpen(false);
             }}
+            isOpen={isUpsertDoctorFormOpen}
           />
         </Dialog>
       </CardFooter>
