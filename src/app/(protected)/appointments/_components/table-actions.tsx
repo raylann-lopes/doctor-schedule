@@ -2,6 +2,7 @@
 
 import { MoreVerticalIcon, TrashIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { deleteAppointment } from "@/actions/delete-appointment";
@@ -49,57 +50,56 @@ interface AppointmentsTableActionsProps {
 const AppointmentsTableActions = ({
   appointment,
 }: AppointmentsTableActionsProps) => {
-  const deleteAppointmentAction = useAction(deleteAppointment, {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const { execute } = useAction(deleteAppointment, {
     onSuccess: () => {
-      toast.success("Agendamento deletado com sucesso.");
+      toast.success("Agendamento deletado com sucesso");
     },
     onError: () => {
-      toast.error("Erro ao deletar agendamento.");
+      toast.error("Erro ao deletar agendamento");
     },
   });
 
-  const handleDeleteAppointmentClick = () => {
-    if (!appointment) return;
-    deleteAppointmentAction.execute({ id: appointment.id });
-  };
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button variant="ghost" size="icon">
-          <MoreVerticalIcon className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>{appointment.patient.name}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <AlertDialog>
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="cursor-pointer">
+            <MoreVerticalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>
+            <span className="font-bold">
+              {appointment.patient.name} - {appointment.doctor.name}
+            </span>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <TrashIcon />
-              Excluir
+            <DropdownMenuItem className="cursor-pointer text-red-500">
+              <TrashIcon className="mr-2" /> Excluir
             </DropdownMenuItem>
           </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Tem certeza que deseja deletar esse agendamento?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Essa ação não pode ser revertida. Isso irá deletar o agendamento
-                permanentemente.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAppointmentClick}>
-                Deletar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Essa ação não pode ser desfeita. Isso irá deletar permanentemente o
+            agendamento.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={() => execute({ id: appointment.id })}>
+            Deletar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { DataTable } from "@/components/ui/data-table";
 import {
   PageActions,
   PageContainer,
@@ -16,6 +17,7 @@ import { doctorsTable, patientsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 import AddAppointmentButton from "./_components/add-appointment-button";
+import { appointmentsTableColumns } from "./_components/table-columns";
 
 const AppointmentsPage = async () => {
   const session = await auth.api.getSession({
@@ -28,11 +30,18 @@ const AppointmentsPage = async () => {
     redirect("/clinic-form");
   }
 
-  const [patients, doctors] = await Promise.all([
+  const [patients, doctors, appointments] = await Promise.all([
     db.query.patientsTable.findMany({
       where: eq(patientsTable.clinicsId, session.user.clinic.id),
     }),
     db.query.doctorsTable.findMany({
+      where: eq(doctorsTable.clinicId, session.user.clinic.id),
+    }),
+    db.query.appointmentsTable.findMany({
+      with: {
+        patients: true,
+        doctors: true,
+      },
       where: eq(doctorsTable.clinicId, session.user.clinic.id),
     }),
   ]);
@@ -51,10 +60,24 @@ const AppointmentsPage = async () => {
         </PageActions>
       </PageHeader>
       <PageContent>
-        {/* TODO: Implementar listagem de agendamentos */}
-        <div className="text-muted-foreground py-8 text-center">
-          Listagem de agendamentos será implementada em breve
-        </div>
+        <DataTable
+          columns={appointmentsTableColumns}
+          data={appointments.map((appointment) => ({
+            ...appointment,
+            patient: {
+              id: appointment.patients.id,
+              name: appointment.patients.name,
+              email: appointment.patients.email,
+              phoneNumber: appointment.patients.phoneNumber,
+              sex: appointment.patients.sexo,
+            },
+            doctor: {
+              id: appointment.doctors.id,
+              name: appointment.doctors.name,
+              specialty: appointment.doctors.specialty,
+            },
+          }))}
+        />
       </PageContent>
     </PageContainer>
   );
