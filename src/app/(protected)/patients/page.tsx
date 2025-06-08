@@ -3,8 +3,9 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/ui/data-table";
-import PageContainer, {
+import {
   PageActions,
+  PageContainer,
   PageContent,
   PageDescription,
   PageHeader,
