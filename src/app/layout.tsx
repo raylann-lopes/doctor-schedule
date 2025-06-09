@@ -3,6 +3,7 @@ import "./globals.css";
 import { Metadata } from "next";
 
 import { Toaster } from "@/components/ui/sonner";
+import { ReactQueryProvider } from "@/providers/react-query";
 
 export const metadata: Metadata = {
   title: "Create Next APP",
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <ReactQueryProvider>{children}</ReactQueryProvider>
         <Toaster position="bottom-center" theme="light" />
       </body>
     </html>

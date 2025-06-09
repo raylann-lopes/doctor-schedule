@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect } from "react";
@@ -12,6 +14,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { upsertAppointment } from "@/actions/add-appointment";
+import { getAvailableTimes } from "@/actions/get-available-times";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -90,23 +93,39 @@ const UpsertAppointmentForm = ({
     },
   });
 
-  const watchedDoctorId = form.watch("doctorId");
-  const watchedPatientId = form.watch("patientId");
+  const selectedDoctorId = form.watch("doctorId");
+  const selectedPatientId = form.watch("patientId");
+  const selectedDate = form.watch("date");
+
+  const isDateTimeEnabled = selectedPatientId && selectedDoctorId;
+
+  const { data: availableTimes } = useQuery({
+    queryKey: ["available-times", selectedDoctorId, selectedDate],
+    queryFn: () =>
+      getAvailableTimes({
+        doctorId: selectedDoctorId,
+        date: dayjs(selectedDate).format("YYYY-MM-DD"),
+      }),
+    enabled: Boolean(selectedDoctorId && selectedDate),
+  });
 
   // Atualizar o preço quando o médico for selecionado
   useEffect(() => {
-    if (watchedDoctorId) {
+    if (selectedDoctorId) {
       const selectedDoctor = doctors.find(
-        (doctor) => doctor.id === watchedDoctorId,
+        (doctor) => doctor.id === selectedDoctorId,
       );
       if (selectedDoctor) {
         form.setValue(
           "appointmentPrice",
           selectedDoctor.appointmentPriceInCents / 100,
         );
+        // Limpa a data e hora quando o médico é alterado
+        form.setValue("date", new Date());
+        form.setValue("time", "");
       }
     }
-  }, [watchedDoctorId, doctors, form]);
+  }, [selectedDoctorId, doctors, form]);
 
   useEffect(() => {
     if (isOpen) {
@@ -137,8 +156,6 @@ const UpsertAppointmentForm = ({
       appointmentPriceInCents: values.appointmentPrice * 100,
     });
   };
-
-  const isDateTimeEnabled = watchedPatientId && watchedDoctorId;
 
   return (
     <DialogContent className="sm:max-w-[500px]">
@@ -227,7 +244,7 @@ const UpsertAppointmentForm = ({
                   thousandSeparator="."
                   prefix="R$ "
                   allowNegative={false}
-                  disabled={!watchedDoctorId}
+                  disabled={!selectedDoctorId}
                   customInput={Input}
                 />
                 <FormMessage />
@@ -246,18 +263,20 @@ const UpsertAppointmentForm = ({
                     <FormControl>
                       <Button
                         variant={"outline"}
-                        disabled={!isDateTimeEnabled}
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground",
                         )}
+                        disabled={!isDateTimeEnabled}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
                         {field.value ? (
-                          format(field.value, "PPP", { locale: ptBR })
+                          format(field.value, "PPP", {
+                            locale: ptBR,
+                          })
                         ) : (
                           <span>Selecione uma data</span>
                         )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -266,9 +285,25 @@ const UpsertAppointmentForm = ({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => {
+                        const selectedDoctor = doctors.find(
+                          (doctor) => doctor.id === selectedDoctorId,
+                        );
+
+                        if (!selectedDoctor) {
+                          return true;
+                        }
+
+                        const dayOfWeek = date.getDay();
+                        const isWeekdayAvailable =
+                          dayOfWeek >= selectedDoctor.availableFromWeekday &&
+                          dayOfWeek <= selectedDoctor.availableToWeekday;
+
+                        return (
+                          date < new Date() || // Não permite datas passadas
+                          !isWeekdayAvailable // Não permite dias fora da disponibilidade do médico
+                        );
+                      }}
                       initialFocus
                       locale={ptBR}
                     />
@@ -296,15 +331,11 @@ const UpsertAppointmentForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/* TODO: Implementar horários disponíveis baseados no médico */}
-                    <SelectItem value="08:00">08:00</SelectItem>
-                    <SelectItem value="09:00">09:00</SelectItem>
-                    <SelectItem value="10:00">10:00</SelectItem>
-                    <SelectItem value="11:00">11:00</SelectItem>
-                    <SelectItem value="14:00">14:00</SelectItem>
-                    <SelectItem value="15:00">15:00</SelectItem>
-                    <SelectItem value="16:00">16:00</SelectItem>
-                    <SelectItem value="17:00">17:00</SelectItem>
+                    {availableTimes?.data?.map((time) => (
+                      <SelectItem key={time.value} value={time.value}>
+                        {time.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
