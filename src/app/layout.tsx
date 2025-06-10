@@ -1,9 +1,16 @@
 import "./globals.css";
 
 import { Metadata } from "next";
+import { Manrope } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryProvider } from "@/providers/react-query";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+});
 
 export const metadata: Metadata = {
   title: "Create Next APP",
@@ -17,8 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+      <body className={`${manrope.variable} antialiased`}>
+        <ReactQueryProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </ReactQueryProvider>
         <Toaster position="bottom-center" theme="light" />
       </body>
     </html>
