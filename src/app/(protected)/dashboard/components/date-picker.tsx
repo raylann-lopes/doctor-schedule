@@ -27,21 +27,22 @@ export function DatePicker({
     "to",
     parseAsIsoDate.withDefault(addMonths(new Date(), 1)),
   );
-
   const handleDateSelect = (dateRange: DateRange | undefined) => {
     if (dateRange?.from) {
-      setFrom(dateRange.from);
+      setFrom(dateRange.from, {
+        shallow: false,
+      });
     }
     if (dateRange?.to) {
-      setTo(dateRange.to);
+      setTo(dateRange.to, {
+        shallow: false,
+      });
     }
   };
-
   const date = {
     from,
     to,
   };
-
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -58,11 +59,16 @@ export function DatePicker({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "dd LLL yyyy")} -{" "}
-                  {format(date.to, "dd LLL yyyy")}
+                  {format(date.from, "LLL dd, y", {
+                    locale: ptBR,
+                  })}{" "}
+                  -{" "}
+                  {format(date.to, "LLL dd, y", {
+                    locale: ptBR,
+                  })}
                 </>
               ) : (
-                format(date.from, "dd LLL yyyy")
+                format(date.from, "LLL dd, y")
               )
             ) : (
               <span>Pick a date</span>
