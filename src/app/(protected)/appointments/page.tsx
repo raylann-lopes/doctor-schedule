@@ -32,15 +32,15 @@ const AppointmentsPage = async () => {
 
   const [patients, doctors, appointments] = await Promise.all([
     db.query.patientsTable.findMany({
-      where: eq(patientsTable.clinicsId, session.user.clinic.id),
+      where: eq(patientsTable.clinicId, session.user.clinic.id),
     }),
     db.query.doctorsTable.findMany({
       where: eq(doctorsTable.clinicId, session.user.clinic.id),
     }),
     db.query.appointmentsTable.findMany({
       with: {
-        patients: true,
-        doctors: true,
+        patient: true,
+        doctor: true,
       },
       where: eq(doctorsTable.clinicId, session.user.clinic.id),
     }),
@@ -60,24 +60,7 @@ const AppointmentsPage = async () => {
         </PageActions>
       </PageHeader>
       <PageContent>
-        <DataTable
-          columns={appointmentsTableColumns}
-          data={appointments.map((appointment) => ({
-            ...appointment,
-            patient: {
-              id: appointment.patients.id,
-              name: appointment.patients.name,
-              email: appointment.patients.email,
-              phoneNumber: appointment.patients.phoneNumber,
-              sex: appointment.patients.sexo,
-            },
-            doctor: {
-              id: appointment.doctors.id,
-              name: appointment.doctors.name,
-              specialty: appointment.doctors.specialty,
-            },
-          }))}
-        />
+        <DataTable columns={appointmentsTableColumns} data={appointments} />
       </PageContent>
     </PageContainer>
   );

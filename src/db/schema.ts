@@ -101,8 +101,8 @@ export const usersToClinicsTableRelation = relations(
 );
 
 export const clinicsTableRelation = relations(clinicsTable, ({ many }) => ({
-  doctors: many(doctorsTable),
-  patients: many(patientsTable),
+  doctor: many(doctorsTable),
+  patient: many(patientsTable),
   appointments: many(appointmentsTable),
   usersToClinics: many(usersToClinicsTable),
 }));
@@ -142,7 +142,7 @@ export const patientSexEnum = pgEnum("patient_sexo", ["male", "female"]);
 
 export const patientsTable = pgTable("patients", {
   id: uuid("id").defaultRandom().primaryKey(),
-  clinicsId: uuid("clinic_id")
+  clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
@@ -159,7 +159,7 @@ export const patientsTableRelation = relations(
   patientsTable,
   ({ one, many }) => ({
     clinics: one(clinicsTable, {
-      fields: [patientsTable.clinicsId],
+      fields: [patientsTable.clinicId],
       references: [clinicsTable.id],
     }),
     appointments: many(appointmentsTable),
@@ -188,11 +188,11 @@ export const appointmentsTable = pgTable("appointments", {
 export const appointmentsTableRelation = relations(
   appointmentsTable,
   ({ one }) => ({
-    patients: one(patientsTable, {
+    patient: one(patientsTable, {
       fields: [appointmentsTable.patientId],
       references: [patientsTable.id],
     }),
-    doctors: one(doctorsTable, {
+    doctor: one(doctorsTable, {
       fields: [appointmentsTable.doctorId],
       references: [doctorsTable.id],
     }),
