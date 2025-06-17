@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -84,6 +85,9 @@ const SignUpForm = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <CardHeader>
+            <div className="pb-3">
+              <Image src="logo.svg" alt="Logo" width={120} height={50} />
+            </div>
             <CardTitle>Criar Conta</CardTitle>
             <CardDescription>
               Crie uma nova conta para continuar.
