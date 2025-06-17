@@ -53,7 +53,7 @@ const PatientCard = ({ patient }: PatientCardProps) => {
         </Badge>
         <Badge variant="outline">
           <UserIcon className="mr-1" />
-          {patient.sexo === "male" ? "Masculino" : "Feminino"}
+          {patient.sex === "male" ? "Masculino" : "Feminino"}
         </Badge>
       </CardContent>
       <Separator />

@@ -17,7 +17,7 @@ export const createClinic = async (name: string) => {
   const [clinic] = await db.insert(clinicsTable).values({ name }).returning();
   await db.insert(usersToClinicsTable).values({
     userId: session.user.id,
-    clinicsTableId: clinic.id,
+    clinicId: clinic.id,
   });
   redirect("/dashboard");
 };

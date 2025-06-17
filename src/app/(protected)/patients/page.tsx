@@ -29,8 +29,11 @@ const PatientPage = async () => {
   if (!session?.user.clinic) {
     redirect("/clinic-form");
   }
+  if (!session.user.plan) {
+    redirect("/new-subscription");
+  }
   const patients = await db.query.patientsTable.findMany({
-    where: eq(patientsTable.clinicsId, session.user.clinic.id),
+    where: eq(patientsTable.clinicId, session.user.clinic.id),
   });
 
   return (

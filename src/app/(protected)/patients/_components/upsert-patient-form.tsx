@@ -55,7 +55,7 @@ const UpsertPatientForm = ({
       name: patient?.name || "",
       email: patient?.email || "",
       phoneNumber: patient?.phoneNumber || "",
-      sex: patient?.sexo || "male",
+      sex: patient?.sex || "male",
     },
   });
 

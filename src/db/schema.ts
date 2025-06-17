@@ -16,11 +16,14 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
   image: text("image"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  plan: text("plan"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const usersTableRelation = relations(usersTable, ({ many }) => ({
+export const usersTableRelations = relations(usersTable, ({ many }) => ({
   usersToClinics: many(usersToClinicsTable),
 }));
 
@@ -67,7 +70,7 @@ export const verificationsTable = pgTable("verifications", {
 export const clinicsTable = pgTable("clinics", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  createAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
@@ -77,60 +80,60 @@ export const usersToClinicsTable = pgTable("users_to_clinics", {
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  clinicsTableId: uuid("clinic_id")
+  clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
-  createAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
-export const usersToClinicsTableRelation = relations(
+export const usersToClinicsTableRelations = relations(
   usersToClinicsTable,
   ({ one }) => ({
-    users: one(usersTable, {
+    user: one(usersTable, {
       fields: [usersToClinicsTable.userId],
       references: [usersTable.id],
     }),
-    clinics: one(clinicsTable, {
-      fields: [usersToClinicsTable.clinicsTableId],
+    clinic: one(clinicsTable, {
+      fields: [usersToClinicsTable.clinicId],
       references: [clinicsTable.id],
     }),
   }),
 );
 
-export const clinicsTableRelation = relations(clinicsTable, ({ many }) => ({
-  doctor: many(doctorsTable),
-  patient: many(patientsTable),
+export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
+  doctors: many(doctorsTable),
+  patients: many(patientsTable),
   appointments: many(appointmentsTable),
   usersToClinics: many(usersToClinicsTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
   clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   avatarImageUrl: text("avatar_image_url"),
-  specialty: text("specialty").notNull(),
-  // 1 - Monday, 2 - Tuesday, ..., 7 - Sunday
-  availableFromWeekday: integer("available_from_weekday").notNull(),
-  availableToWeekday: integer("available_to_weekday").notNull(),
+  // 1 - Monday, 2 - Tuesday, 3 - Wednesday, 4 - Thursday, 5 - Friday, 6 - Saturday, 0 - Sunday
+  availableFromWeekDay: integer("available_from_week_day").notNull(),
+  availableToWeekDay: integer("available_to_week_day").notNull(),
   availableFromTime: time("available_from_time").notNull(),
   availableToTime: time("available_to_time").notNull(),
+  specialty: text("specialty").notNull(),
   appointmentPriceInCents: integer("appointment_price_in_cents").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
-export const doctorsTableRelation = relations(
+export const doctorsTableRelations = relations(
   doctorsTable,
-  ({ one, many }) => ({
-    clinics: one(clinicsTable, {
+  ({ many, one }) => ({
+    clinic: one(clinicsTable, {
       fields: [doctorsTable.clinicId],
       references: [clinicsTable.id],
     }),
@@ -138,7 +141,7 @@ export const doctorsTableRelation = relations(
   }),
 );
 
-export const patientSexEnum = pgEnum("patient_sexo", ["male", "female"]);
+export const patientSexEnum = pgEnum("patient_sex", ["male", "female"]);
 
 export const patientsTable = pgTable("patients", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -147,18 +150,18 @@ export const patientsTable = pgTable("patients", {
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   email: text("email").notNull(),
-  phoneNumber: text("phone").notNull(),
-  sexo: patientSexEnum("sexo").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+  phoneNumber: text("phone_number").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  sex: patientSexEnum("sex").notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
-export const patientsTableRelation = relations(
+export const patientsTableRelations = relations(
   patientsTable,
   ({ one, many }) => ({
-    clinics: one(clinicsTable, {
+    clinic: one(clinicsTable, {
       fields: [patientsTable.clinicId],
       references: [clinicsTable.id],
     }),
@@ -185,9 +188,13 @@ export const appointmentsTable = pgTable("appointments", {
     .$onUpdate(() => new Date()),
 });
 
-export const appointmentsTableRelation = relations(
+export const appointmentsTableRelations = relations(
   appointmentsTable,
   ({ one }) => ({
+    clinic: one(clinicsTable, {
+      fields: [appointmentsTable.clinicId],
+      references: [clinicsTable.id],
+    }),
     patient: one(patientsTable, {
       fields: [appointmentsTable.patientId],
       references: [patientsTable.id],
@@ -195,10 +202,6 @@ export const appointmentsTableRelation = relations(
     doctor: one(doctorsTable, {
       fields: [appointmentsTable.doctorId],
       references: [doctorsTable.id],
-    }),
-    clinics: one(clinicsTable, {
-      fields: [appointmentsTable.clinicId],
-      references: [clinicsTable.id],
     }),
   }),
 );

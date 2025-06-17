@@ -17,15 +17,14 @@ dayjs.extend(utc);
 export const upsertDoctor = actionClient
   .schema(upsertDoctorSchema)
   .action(async ({ parsedInput }) => {
-    const availableFromTime = parsedInput.availableFromTime;
-    const availableToTime = parsedInput.availableToTime;
+    const availableFromTime = parsedInput.availableFromTime; // 15:30:00
+    const availableToTime = parsedInput.availableToTime; // 16:00:00
 
     const availableFromTimeUTC = dayjs()
       .set("hour", parseInt(availableFromTime.split(":")[0]))
       .set("minute", parseInt(availableFromTime.split(":")[1]))
       .set("second", parseInt(availableFromTime.split(":")[2]))
       .utc();
-
     const availableToTimeUTC = dayjs()
       .set("hour", parseInt(availableToTime.split(":")[0]))
       .set("minute", parseInt(availableToTime.split(":")[1]))
@@ -35,7 +34,6 @@ export const upsertDoctor = actionClient
     const session = await auth.api.getSession({
       headers: await headers(),
     });
-
     if (!session?.user) {
       throw new Error("Unauthorized");
     }
@@ -46,9 +44,10 @@ export const upsertDoctor = actionClient
       .insert(doctorsTable)
       .values({
         ...parsedInput,
-        id: parsedInput.id,
         clinicId: session?.user.clinic?.id,
         availableFromTime: availableFromTimeUTC.format("HH:mm:ss"),
+        availableFromWeekDay: parsedInput.availableFromWeekday,
+        availableToWeekDay: parsedInput.availableToWeekday,
         availableToTime: availableToTimeUTC.format("HH:mm:ss"),
       })
       .onConflictDoUpdate({

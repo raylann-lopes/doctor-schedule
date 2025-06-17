@@ -295,8 +295,8 @@ const UpsertAppointmentForm = ({
 
                         const dayOfWeek = date.getDay();
                         const isWeekdayAvailable =
-                          dayOfWeek >= selectedDoctor.availableFromWeekday &&
-                          dayOfWeek <= selectedDoctor.availableToWeekday;
+                          dayOfWeek >= selectedDoctor.availableFromWeekDay &&
+                          dayOfWeek <= selectedDoctor.availableToWeekDay;
 
                         return (
                           date < new Date() || // Não permite datas passadas
