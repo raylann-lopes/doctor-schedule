@@ -28,14 +28,14 @@ export const upsertPatient = actionClient
       .values({
         ...parsedInput,
         id: parsedInput.id,
-        sexo: parsedInput.sex,
-        clinicsId: session?.user.clinic?.id,
+        sex: parsedInput.sex,
+        clinicId: session?.user.clinic?.id,
       })
       .onConflictDoUpdate({
         target: [patientsTable.id],
         set: {
           ...parsedInput,
-          sexo: parsedInput.sex,
+          sex: parsedInput.sex,
         },
       });
     revalidatePath("/patients");
